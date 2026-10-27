@@ -1447,8 +1447,8 @@ def reset_admin_password() -> None:
     print("Admin reset: cập nhật mật khẩu thành công.")
 def run_server() -> None:
     init_db()
-    reset_admin_password()
     setup_token = ensure_setup_token()
+    reset_admin_password()
     host = os.environ.get("HOST", "0.0.0.0")
     port = parse_int(os.environ.get("PORT", "8080"), 8080)
     if port < 1 or port > 65535:
