@@ -1414,9 +1414,40 @@ class StoreHandler(BaseHTTPRequestHandler):
             con.commit()
         return self.redirect("/admin/settings?msg=Đã%20lưu%20thiết%20lập.%20QR%20và%20thông%20tin%20mới%20được%20áp%20dụng%20cho%20khách&kind=ok")
 
+def reset_admin_password() -> None:
+    username = os.environ.get("YS_ADMIN_RESET_USERNAME", "").strip()
+    password = os.environ.get("YS_ADMIN_RESET_PASSWORD", "")
 
+    if not username or not password:
+        return
+
+    if len(password) < 12:
+        print("Admin reset: mật khẩu phải có ít nhất 12 ký tự.")
+        return
+
+    with connect_db() as con:
+        user = con.execute(
+            "SELECT * FROM users WHERE username = ? COLLATE NOCASE",
+            (username,)
+        ).fetchone()
+
+        if not user or user["role"] != "admin":
+            print("Admin reset: không tìm thấy tài khoản Admin phù hợp.")
+            return
+
+        con.execute(
+            "UPDATE users SET password_hash = ?, disabled = 0 WHERE id = ?",
+            (hash_password(password), user["id"])
+        )
+        con.execute(
+            "DELETE FROM sessions WHERE user_id = ?",
+            (user["id"],)
+        )
+
+    print("Admin reset: cập nhật mật khẩu thành công.")
 def run_server() -> None:
     init_db()
+    reset_admin_password()
     setup_token = ensure_setup_token()
     host = os.environ.get("HOST", "0.0.0.0")
     port = parse_int(os.environ.get("PORT", "8080"), 8080)
