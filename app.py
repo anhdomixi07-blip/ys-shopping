@@ -1418,7 +1418,7 @@ class StoreHandler(BaseHTTPRequestHandler):
 def run_server() -> None:
     init_db()
     setup_token = ensure_setup_token()
-    host = os.environ.get("HOST", "127.0.0.1")
+    host = os.environ.get("HOST", "0.0.0.0")
     port = parse_int(os.environ.get("PORT", "8080"), 8080)
     if port < 1 or port > 65535:
         port = 8080
